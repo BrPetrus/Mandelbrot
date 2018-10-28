@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# CodeLite and other junk
+.cmake_dirty
+.codelite/*
+.directory
+Makefile
+Mandelbrot.mk
+Mandelbrot.project
+Mandelbrot.txt
+Mandelbrot.workspace
+*.o
+*.o.d

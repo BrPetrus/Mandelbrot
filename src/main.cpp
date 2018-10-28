@@ -14,6 +14,54 @@ int width = 1900, height = 1080;	// Default window size
 GLFWwindow *window = nullptr;	// Our window object
 double cx = 0.0, cy = 0.0, zoom = 0.4; // Camera position and zoom value
 int itr = 100;	// Number of iterations
+bool keys[1024] = {0};
+int fps = 0;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	const double d = 0.1/zoom; // wooosh magic?
+	
+	// Store which keys were pressed
+	if(action == GLFW_PRESS) {
+		keys[key] = 1;
+	} else if(action == GLFW_RELEASE) {
+		keys[key] = 0;
+	}
+	
+	if(keys[GLFW_KEY_ESCAPE]) {
+		glfwSetWindowShouldClose(window, 1);
+	} else if(keys[GLFW_KEY_A]) {
+		cx -= d;
+	} else if(keys[GLFW_KEY_D]) {
+		cx += d;
+	} else if(keys[GLFW_KEY_W]) {
+		cy += d;
+	} else if(keys[GLFW_KEY_S]) {
+		cy -= d;
+	} else if(keys[GLFW_KEY_KP_ADD] && itr<std::numeric_limits<int>::max() - 10) {
+		// how does this condition work?
+		itr += 10;
+	} else if(keys[GLFW_KEY_KP_SUBTRACT]) {
+		itr -= 10;
+		if(itr <= 0)
+			itr = 0;
+	}
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	zoom += yoffset * 0.1 * zoom;
+	if(zoom < 0.1) {
+		zoom = 0.1;
+	}
+}
+
+void updateWindowTitle() {
+	std::ostringstream ss;
+	ss << "Mandelbrot, " << "FPS: " << fps;
+	ss << ", Iterations: " << itr;
+	ss << ", Zoom: " << zoom;
+	ss << ", At: (" << std::setprecision(8) << cx << " + " << cy << "i)";
+	glfwSetWindowTitle(window, ss.str().c_str());
+}
 
 int main(int argc, char **argv)
 {
@@ -37,6 +85,10 @@ int main(int argc, char **argv)
 		std::cerr << "Failed to create window." << std::endl;
 		return 1;
 	}
+	
+	// User input
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 	
 	// Lets us do OpenGL stuff
 	glfwMakeContextCurrent(window);
@@ -118,7 +170,11 @@ int main(int argc, char **argv)
 	glUseProgram(shader_program);
 	glBindVertexArray(vao);
 	
-	while(!glfwWindowShouldClose(window)) {
+	// FPS
+	time_t lastTime = glfwGetTime();
+	int ticks = 0;
+	
+	while(!glfwWindowShouldClose(window)) {	
 		glfwGetWindowSize(window, &width, &height);
 		glUniform2d(glGetUniformLocation(shader_program, "screen_size"), (double)width, (double)height);
 		glUniform1d(glGetUniformLocation(shader_program, "screen_ratio"), (double)width / (double)height);
@@ -133,6 +189,15 @@ int main(int argc, char **argv)
 		
 		glfwSwapBuffers(window); // Update the screen
 		glfwPollEvents(); // Polls for events
+		
+		ticks++;
+		time_t currentTime = glfwGetTime();
+		if(currentTime - lastTime > 1.0) {
+			fps = ticks;
+			lastTime = currentTime;
+			updateWindowTitle();
+			ticks = 0;
+		}
 	}
 	glfwDestroyWindow(window);
 	
