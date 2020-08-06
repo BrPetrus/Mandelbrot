@@ -1,25 +1,16 @@
-cmake_minimum_required(VERSION 2.6.2)
-
+cmake_minimum_required(VERSION 3.0.0)
 project(Mandelbrot)
 
-include_directories(
-    .
-    .
-    /home/bruno/Documents/Mandelbrot/Mandelbrot/src
-    /home/bruno/Documents/Mandelbrot/Mandelbrot/
-)
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXXFLAGS "${CMAKE_CXXFLAGS}  -g -O0 -Wall")
+file(GLOB SOURCES "src/*.cpp")
 
-# Linker options
-set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS}  ")
+# Compiler flags
+# add_definitions(-ggdb -Wpedantic -Wall -Wextra)
 
-# Library path
-set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -L\".\" ")
+add_executable(Mandelbrot ${SOURCES})
 
-set(SRCS
-    main.cpp
-)
-
-add_executable(Mandelbrot ${SRCS})
-
+# GLEW and glfw
+target_link_libraries(Mandelbrot -lGLEW -lglfw -lGLU -lGL)
